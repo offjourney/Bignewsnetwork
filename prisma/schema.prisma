@@ -1,0 +1,371 @@
+// BigNewsNetwork — Phase 3 database schema.
+//
+// Generator uses Prisma ORM 7's binary-free client (TypeScript query
+// compiler + driver adapter), so no Rust query-engine binary is bundled
+// or downloaded at runtime — the `pg` driver handles the actual
+// connection. See lib/db.ts for how the client is constructed.
+generator client {
+  provider   = "prisma-client"
+  output     = "../src/generated/prisma"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  EDITOR
+  JOURNALIST
+  PHOTOGRAPHER
+  AD_MANAGER
+}
+
+enum ArticleStatus {
+  DRAFT
+  REVIEW
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum ArticleMediaRole {
+  FEATURED
+  INLINE
+  GALLERY
+}
+
+enum VideoPlatform {
+  YOUTUBE
+  FACEBOOK
+  EXTERNAL
+}
+
+enum AdPlacement {
+  HOMEPAGE_TOP
+  HOMEPAGE_MIDDLE
+  ARTICLE_TOP
+  ARTICLE_MIDDLE
+  ARTICLE_BOTTOM
+  SIDEBAR
+  MOBILE_TOP
+  MOBILE_MIDDLE
+}
+
+// ---------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------
+
+/// A login account. Not every User has an Author profile — Ad managers,
+/// for example, don't byline articles.
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  /// Soft-disable instead of deleting accounts, so historical
+  /// authorship/revision records stay intact (see ArticleRevision).
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  author            Author?
+  articleRevisions  ArticleRevision[]
+
+  @@index([role])
+  @@map("users")
+}
+
+/// Public byline profile. One User can have at most one Author profile.
+model Author {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  name       String
+  slug       String   @unique
+  biography  String?
+  photoUrl   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  articles Article[]
+
+  @@index([slug])
+  @@map("authors")
+}
+
+// ---------------------------------------------------------------------
+// Taxonomy
+// ---------------------------------------------------------------------
+
+/// Supports one level of nesting (e.g. Politics -> Parliament) via the
+/// self-relation on parentId. Seed data only populates top-level
+/// categories; subcategories can be added later without a schema change.
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  parentId    String?
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent   Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryToSubcategory")
+  articles Article[]
+
+  @@index([slug])
+  @@index([parentId])
+  @@map("categories")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  articles ArticleTag[]
+
+  @@index([slug])
+  @@map("tags")
+}
+
+// ---------------------------------------------------------------------
+// Media
+// ---------------------------------------------------------------------
+
+/// Metadata + URL only — binary files live in Cloudflare R2 (Phase 4+),
+/// never in Postgres.
+model Media {
+  id           String    @id @default(cuid())
+  type         MediaType
+  url          String
+  thumbnailUrl String?
+  filename     String
+  mimeType     String
+  altText      String
+  caption      String?
+  credit       String?
+  width        Int?
+  height       Int?
+  fileSize     Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  featuredForArticles Article[]      @relation("ArticleFeaturedMedia")
+  articleMedia        ArticleMedia[]
+  galleryImages       GalleryImage[]
+  galleryCovers       Gallery[]      @relation("GalleryCoverMedia")
+
+  @@index([type])
+  @@map("media")
+}
+
+/// Explicit join between Article and Media so the same image can be
+/// reused (inline figure, gallery strip, ...) with its own position/role
+/// instead of duplicating Media rows.
+model ArticleMedia {
+  id        String           @id @default(cuid())
+  articleId String
+  mediaId   String
+  position  Int              @default(0)
+  role      ArticleMediaRole @default(INLINE)
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  media   Media   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@unique([articleId, mediaId, role])
+  @@index([articleId])
+  @@map("article_media")
+}
+
+// ---------------------------------------------------------------------
+// Articles
+// ---------------------------------------------------------------------
+
+model Article {
+  id        String        @id @default(cuid())
+  title     String
+  slug      String        @unique
+  excerpt   String
+  /// Structured TipTap-compatible JSON document. Keeping this as Json
+  /// (rather than raw HTML) lets the editor/renderer evolve without a
+  /// migration; Phase 4 decides how it's rendered to HTML for the site.
+  content   Json
+  status    ArticleStatus @default(DRAFT)
+  featured  Boolean       @default(false)
+  breaking  Boolean       @default(false)
+  views     Int           @default(0)
+
+  authorId       String
+  categoryId     String
+  featuredMediaId String?
+
+  publishedAt   DateTime?
+  scheduledAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  author        Author        @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  category      Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  featuredMedia Media?        @relation("ArticleFeaturedMedia", fields: [featuredMediaId], references: [id], onDelete: SetNull)
+
+  tags      ArticleTag[]
+  media     ArticleMedia[]
+  revisions ArticleRevision[]
+  videos    Video[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([featured])
+  @@index([breaking])
+  @@index([views])
+  @@map("articles")
+}
+
+/// Explicit join model for Article <-> Tag. (Prisma's implicit m2m would
+/// work too, but an explicit join keeps room for future columns, e.g.
+/// a "primary tag" flag, without a breaking migration.)
+model ArticleTag {
+  articleId String
+  tagId     String
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@index([tagId])
+  @@map("article_tags")
+}
+
+/// Snapshot of an article's editable fields, captured on every save, so
+/// editors can review/restore history later (UI comes in a later phase).
+model ArticleRevision {
+  id        String   @id @default(cuid())
+  articleId String
+  userId    String
+  title     String
+  excerpt   String
+  content   Json
+  createdAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([articleId])
+  @@map("article_revisions")
+}
+
+// ---------------------------------------------------------------------
+// Video
+// ---------------------------------------------------------------------
+
+model Video {
+  id           String        @id @default(cuid())
+  title        String
+  description  String?
+  platform     VideoPlatform
+  videoUrl     String
+  embedUrl     String?
+  thumbnailUrl String
+  duration     Int?
+  articleId    String?
+  publishedAt  DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  article Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  @@index([platform])
+  @@index([publishedAt])
+  @@map("videos")
+}
+
+// ---------------------------------------------------------------------
+// Galleries
+// ---------------------------------------------------------------------
+
+model Gallery {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  description   String?
+  coverMediaId  String
+  publishedAt   DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  coverMedia Media          @relation("GalleryCoverMedia", fields: [coverMediaId], references: [id], onDelete: Restrict)
+  images     GalleryImage[]
+
+  @@index([slug])
+  @@map("galleries")
+}
+
+model GalleryImage {
+  id        String @id @default(cuid())
+  galleryId String
+  mediaId   String
+  caption   String?
+  credit    String?
+  sortOrder Int     @default(0)
+
+  gallery Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  media   Media   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@index([galleryId])
+  @@map("gallery_images")
+}
+
+// ---------------------------------------------------------------------
+// Advertising
+// ---------------------------------------------------------------------
+
+model Advertisement {
+  id        String      @id @default(cuid())
+  name      String
+  imageUrl  String
+  targetUrl String
+  placement AdPlacement
+  startDate DateTime
+  endDate   DateTime
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([placement])
+  @@index([active])
+  @@index([startDate])
+  @@index([endDate])
+  @@map("advertisements")
+}
+
+// ---------------------------------------------------------------------
+// Site configuration
+// ---------------------------------------------------------------------
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}

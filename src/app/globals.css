@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/*
+ * BigNewsNetwork editorial design tokens.
+ * Palette is deliberately warm-newsprint + "eternal blue sky" navy + brick-red,
+ * not the generic cream/terracotta combination. See design notes in README.
+ */
+:root {
+  --bnn-paper: #ffffff;
+  --bnn-paper-dim: #f2f2f2;
+  --bnn-ink: #0d0d0d;
+  --bnn-ink-soft: #595959;
+  --bnn-masthead: #0d0d0d;
+  --bnn-masthead-soft: #2a2a2a;
+  --bnn-accent: #ff0000;
+  --bnn-accent-soft: #ffe5e5;
+  --bnn-line: #d9d9d9;
+  --bnn-line-strong: #b5b5b5;
+}
+
+@theme inline {
+  --color-paper: var(--bnn-paper);
+  --color-paper-dim: var(--bnn-paper-dim);
+  --color-ink: var(--bnn-ink);
+  --color-ink-soft: var(--bnn-ink-soft);
+  --color-masthead: var(--bnn-masthead);
+  --color-masthead-soft: var(--bnn-masthead-soft);
+  --color-accent: var(--bnn-accent);
+  --color-accent-soft: var(--bnn-accent-soft);
+  --color-line: var(--bnn-line);
+  --color-line-strong: var(--bnn-line-strong);
+
+  --font-serif: "PT Serif", ui-serif, Georgia, serif;
+  --font-sans: "PT Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-none: 0px;
+}
+
+* {
+  border-color: var(--bnn-line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bnn-paper);
+  color: var(--bnn-ink);
+  font-family: "PT Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.font-serif {
+  font-family: "PT Serif", ui-serif, Georgia, serif;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Visible keyboard focus, consistent across the site */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--bnn-accent);
+  outline-offset: 2px;
+}
+
+.container-edit {
+  max-width: 1400px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 768px) {
+  .container-edit {
+    padding-inline: 1.5rem;
+  }
+}
