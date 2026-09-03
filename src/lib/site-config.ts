@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "BigNewsNetwork",
+  name: "Bignewsnetwork",
   wordmark: "BIGNEWSNETWORK",
   tagline: "Монголын мэдээллийн сүлжээ",
   description:

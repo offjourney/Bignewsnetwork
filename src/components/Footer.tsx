@@ -24,10 +24,6 @@ export function Footer() {
               {siteConfig.description}
             </p>
 
-            <p className="mt-2 text-sm font-medium text-paper/90">
-              Манай сошиал хаягуудыг дагаарай.
-            </p>
-
             {/* Social buttons */}
             <div className="mt-5 flex gap-2">
               <a
@@ -71,10 +67,10 @@ export function Footer() {
               </a>
 
               <a
-                href="tel:+97600000000"
+                href="tel:+97691112955"
                 className="block transition-colors hover:text-paper"
               >
-                +976 0000 0000
+                +976 9111 2955
               </a>
 
               <p className="pt-1 text-paper/50">Улаанбаатар хот, Монгол улс</p>
@@ -89,7 +85,7 @@ export function Footer() {
                 href="/latest"
                 className="transition-colors hover:text-paper"
               >
-                Сүүлийн мэдээ
+                Сүүлийн үеийн мэдээ
               </Link>
 
               <Link

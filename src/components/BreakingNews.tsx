@@ -22,7 +22,7 @@ export async function BreakingNews() {
           </span>
 
           <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-accent">
-            Шуурхай
+            Шуурхай мэдээ
           </span>
 
           <span className="hidden text-[11px] text-ink-soft sm:inline">
