@@ -24,7 +24,7 @@ export function NewsCard({
     return (
       <article className="group relative">
         <Link href={href} className="block">
-          <div className="relative aspect-[16/10] w-full overflow-hidden bg-paper-dim">
+         <div className="relative aspect-[16/9] w-full overflow-hidden bg-paper-dim">
             <Image
               src={article.image.url}
               alt={article.image.altText}

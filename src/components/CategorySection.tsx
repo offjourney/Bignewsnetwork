@@ -13,8 +13,6 @@ export function CategorySection({
 
   const [lead, ...rest] = articles;
 
-  // Use only two secondary stories.
-  // This keeps the section visually balanced.
   const smaller = rest.slice(0, 2);
 
   return (
@@ -22,7 +20,7 @@ export function CategorySection({
       aria-labelledby={`section-${category.slug}`}
       className="border-b border-line py-8"
     >
-      {/* Category heading */}
+      {/* Header */}
       <div className="mb-5 flex items-baseline justify-between border-b-2 border-masthead pb-2">
         <h2
           id={`section-${category.slug}`}
@@ -33,27 +31,26 @@ export function CategorySection({
 
         <Link
           href={`/${category.slug}`}
-          className="text-sm font-semibold text-accent transition-colors hover:text-masthead"
+          className="text-sm font-semibold text-accent hover:text-masthead"
         >
           Бүх мэдээ →
         </Link>
       </div>
 
-      {/* Category stories */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.45fr]">
-        {/* Main story */}
+      {/* Main layout */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.25fr_1fr]">
+        {/* Lead article */}
         <div className="min-w-0">
-          <NewsCard article={lead} variant="grid" />
+          <NewsCard article={lead} variant="hero" />
         </div>
 
-        {/* Two secondary stories */}
-        <div className="grid min-w-0 grid-rows-2">
+        {/* Secondary articles */}
+        <div className="flex flex-col">
           {smaller.map((article, index) => (
             <div
               key={article.id}
               className={`
-                min-h-0
-                ${index === 0 ? "pb-5" : "border-t border-line pt-5"}
+                ${index === 1 ? "mt-5 border-t border-line pt-5" : ""}
               `}
             >
               <NewsCard article={article} variant="row" />

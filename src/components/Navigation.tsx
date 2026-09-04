@@ -29,21 +29,21 @@ export function Navigation({ scrolled = false }: NavigationProps) {
         borderBottomColor: "var(--bnn-line)",
       }}
     >
-      <div
-        className={`container-edit flex items-center transition-all duration-500 ease-out ${
-          scrolled ? "min-h-[38px]" : "min-h-[42px]"
-        }`}
-      >
+      <div className="container-edit flex h-[42px] items-center">
         {/* Desktop navigation */}
         <ul className="hidden items-center gap-1 lg:flex">
           {primaryNav.map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`group relative block whitespace-nowrap px-3 font-semibold tracking-wide text-ink transition-colors duration-200 hover:text-accent ${
-                  scrolled ? "py-2 text-[13px]" : "py-2.5 text-sm"
-                }`}
-              >
+                className="
+                  group relative block whitespace-nowrap
+                  px-3 py-2
+                  text-sm font-semibold tracking-wide
+                  text-ink transition-colors duration-200
+                  hover:text-accent
+                  "
+                >
                 {item.label}
 
                 {/* Red underline ONLY on hover */}

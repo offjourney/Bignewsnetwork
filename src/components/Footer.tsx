@@ -1,11 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 import { siteConfig } from "@/lib/site-config";
 import { SocialGlyph } from "./icons/SocialGlyph";
 
 export function Footer() {
   return (
     <footer className="mt-16 border-t border-line-strong bg-masthead text-paper">
-      <div className="container-edit">
+      <div className="ml-4 mr-4">
         {/* Main footer */}
         <div className="flex flex-col gap-10 py-10 md:flex-row md:items-start md:justify-between">
           {/* Left side — Logo + description */}
@@ -54,11 +55,11 @@ export function Footer() {
 
           {/* Right side — Contact */}
           <div className="md:min-w-[260px] md:text-right">
-            <h2 className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-paper/50">
+            <h2 className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-paper/70">
               Холбоо барих
             </h2>
 
-            <div className="space-y-1.5 text-sm text-paper/70">
+            <div className="space-y-1.5 text-sm text-paper/50">
               <a
                 href="mailto:info@bignewsnetwork.mn"
                 className="block transition-colors hover:text-paper"

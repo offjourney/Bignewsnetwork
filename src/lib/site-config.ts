@@ -3,7 +3,7 @@ export const siteConfig = {
   wordmark: "BIGNEWSNETWORK",
   tagline: "Монголын мэдээллийн сүлжээ",
   description:
-    "BigNewsNetwork — Монголын мэдээлэл, аналитикийн үндэсний платформ.",
+    "Bignewsnetwork — Стратегийн мэдээлэл, анализ, хэтийн төлөвийн медиа платформ.",
   url: "https://bignewsnetwork.mn",
   social: {
     facebook: "https://facebook.com",
